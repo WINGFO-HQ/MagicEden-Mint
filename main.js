@@ -128,7 +128,7 @@ async function main() {
       if (cfgResult) {
         finalConfig = cfgResult.config;
         derivedVariant = cfgResult.variant;
-        zeroPrice = !!cfgResult.zeroPrice;
+        zeroPrice = false;
       }
     } catch (err) {
       helpers.log.error("Error retrieving config from contract");
@@ -138,14 +138,18 @@ async function main() {
   }
 
   let mintPrice;
-  if (finalConfig && !zeroPrice && !finalConfig.publicStage.price.eq(0)) {
+  if (finalConfig) {
     mintPrice = finalConfig.publicStage.price;
     globalMintVariant = derivedVariant;
 
     const ethPrice = ethers.utils.formatEther(mintPrice);
-    helpers.log.success(
-      `Price obtained from contract - [${ethPrice} ${MONAD_TESTNET.SYMBOL}]`
-    );
+    if (mintPrice.eq(0)) {
+      helpers.log.success(`This is a FREE MINT! (0 ${MONAD_TESTNET.SYMBOL})`);
+    } else {
+      helpers.log.success(
+        `Price obtained from contract - [${ethPrice} ${MONAD_TESTNET.SYMBOL}]`
+      );
+    }
 
     if (finalConfig.maxSupply) {
       helpers.log.info(`Supply: ${finalConfig.maxSupply.toString()}`);
@@ -155,23 +159,27 @@ async function main() {
     const { manualPrice } = await inquirer.prompt({
       type: "input",
       name: "manualPrice",
-      message: "MINT_PRICE:",
-      validate: (input) => !isNaN(input) && Number(input) > 0,
+      message: "MINT_PRICE (enter 0 for free mint):",
+      validate: (input) => !isNaN(input) && Number(input) >= 0,
       prefix: "?",
     });
 
     mintPrice = ethers.utils.parseEther(manualPrice.toString());
     globalMintVariant = "twoParams";
 
-    helpers.log.info(
-      `Price is set to [${manualPrice} ${MONAD_TESTNET.SYMBOL}]`
-    );
+    if (mintPrice.eq(0)) {
+      helpers.log.info(`This is a FREE MINT! (0 ${MONAD_TESTNET.SYMBOL})`);
+    } else {
+      helpers.log.info(
+        `Price is set to [${manualPrice} ${MONAD_TESTNET.SYMBOL}]`
+      );
+    }
   }
 
   if (
     mintOptions.mintOption === "Scheduled Mint" &&
     finalConfig &&
-    !finalConfig.publicStage.price.eq(0)
+    finalConfig.publicStage.startTime
   ) {
     try {
       const startTime = finalConfig.publicStage.startTime.toNumber();

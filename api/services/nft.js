@@ -8,9 +8,7 @@ export const getConfigWithFallback = async (contract) => {
   let config;
   try {
     config = await contract.getConfig();
-    if (!config.publicStage.price.eq(0)) {
-      return { config, variant: "twoParams" };
-    }
+    return { config, variant: "twoParams" };
   } catch (err) {}
 
   let fallbackConfig;
@@ -18,9 +16,7 @@ export const getConfigWithFallback = async (contract) => {
   for (let id of fallbackIds) {
     try {
       fallbackConfig = await contract["getConfig(uint256)"](id);
-      if (!fallbackConfig.publicStage.price.eq(0)) {
-        return { config: fallbackConfig, variant: "fourParams" };
-      }
+      return { config: fallbackConfig, variant: "fourParams" };
     } catch (err) {}
   }
 
