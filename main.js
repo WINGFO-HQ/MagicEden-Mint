@@ -54,6 +54,21 @@ const extractContractAddress = (input) => {
   return null;
 };
 
+const isUnlimitedSupply = (supply) => {
+  return (
+    !supply ||
+    supply.eq(0) ||
+    supply.gte(ethers.constants.MaxUint256.div(2)) ||
+    supply.gte(ethers.BigNumber.from(2).pow(64).sub(1)) ||
+    supply.eq(ethers.BigNumber.from("18446744073709551615")) ||
+    supply.eq(
+      ethers.BigNumber.from(
+        "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      )
+    )
+  );
+};
+
 async function main() {
   displayBanner();
 
@@ -65,10 +80,7 @@ async function main() {
   }
 
   const wallet = wallets[0];
-  helpers.log.info(`Loaded 1 wallet from environment variables`);
-
   const provider = blockchain.createProvider(ENV.NETWORK);
-
   const mintOptions = await inquirer.prompt({
     type: "list",
     name: "mintOption",
@@ -152,7 +164,11 @@ async function main() {
     }
 
     if (finalConfig.maxSupply) {
-      helpers.log.info(`Supply: ${finalConfig.maxSupply.toString()}`);
+      if (isUnlimitedSupply(finalConfig.maxSupply)) {
+        helpers.log.info(`Supply: ♾️`);
+      } else {
+        helpers.log.info(`Supply: ${finalConfig.maxSupply.toString()}`);
+      }
     }
   } else {
     helpers.log.error("Unable to retrieve Price from contract");
