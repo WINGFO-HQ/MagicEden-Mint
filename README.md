@@ -11,6 +11,7 @@ A modular, command-line tool for minting NFTs on the Monad blockchain. Simplifie
 - **Scheduled Minting**: Automatically start minting at the contract's specified launch time
 - **Simple Wallet Management**: Easy configuration through environment variables
 - **Collection Details**: Displays collection name and supply information when available
+- **Magic Eden Link Support**: Paste a Magic Eden mint link directly to extract the contract address
 
 ## Installation
 
@@ -57,29 +58,31 @@ npm start
 Follow the interactive prompts to:
 
 1. Choose between Instant Mint or Scheduled Mint
-2. Enter the NFT contract address
+2. Enter the NFT contract address or a Magic Eden link
+   - You can paste a link like `https://magiceden.io/mint-terminal/monad-testnet/0x0000000000000`
+   - Or enter the contract address directly
 3. Choose to retrieve the mint price from the contract or enter manually
 
 ### Example
 
 ```
-┌──────────────────────────────────────┐
-│           MONAD NFT MINTER           │
-│       Mint NFTs on Monad Chain       │
-│        https://t.me/infomindao       │
-└──────────────────────────────────────┘
+┌─────────────────────────────────┐
+│         MONAD NFT MINTER        │
+│    Mint NFTs on Monad Chain     │
+│     https://t.me/infomindao     │
+└─────────────────────────────────┘
 
-> Loaded 1 wallet from environment variables
 ? Minting Mode: Instant Mint
-? NFT Contract Address: 0x000000
+? NFT Contract Address or Magic Eden Link: https://magiceden.io/mint-terminal/monad-testnet/0x000000000000000
+> Using contract address: 0x00000000000000
 > Collection: MyNFTCollection (MNFT)
 ? Get price from contract? Yes
 + Price obtained from contract - [0.0001 MON]
 > Supply: 999999
 > Using gasLimit: [267348] globalMintVariant: [fourParams]
 > Wallet is minting 1 NFT(s)
-+ Mint transaction sent! [0x0000...0000]
-  https://testnet.monadexplorer.com/tx/0x0000000000000000
++ Mint transaction sent! [0x0000...000]
+  https://testnet.monadexplorer.com/tx/000000000
 + Transaction confirmed in Block [6290517]
 + Minting process completed!
 ```

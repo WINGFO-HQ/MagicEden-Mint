@@ -38,16 +38,37 @@ const displayBanner = () => {
   console.log(chalk.blue("└─────────────────────────────────┘\n"));
 };
 
+const extractContractAddress = (input) => {
+  const magicEdenPattern =
+    /magiceden\.io\/.*?\/(?:monad(?:-testnet)?\/)?([a-fA-F0-9x]{42})/i;
+  const meMatch = input.match(magicEdenPattern);
+
+  if (meMatch && meMatch[1]) {
+    return meMatch[1].toLowerCase();
+  }
+
+  if (ethers.utils.isAddress(input)) {
+    return input.toLowerCase();
+  }
+
+  return null;
+};
+
 async function main() {
   displayBanner();
 
   const wallets = loadWallets();
   if (wallets.length === 0) {
+    helpers.log.error("No wallets found in .env file");
+    helpers.log.normal("Add wallet to .env file: WALLET_1=0xprivatekey1");
     return;
   }
 
   const wallet = wallets[0];
+  helpers.log.info(`Loaded 1 wallet from environment variables`);
+
   const provider = blockchain.createProvider(ENV.NETWORK);
+
   const mintOptions = await inquirer.prompt({
     type: "list",
     name: "mintOption",
@@ -58,16 +79,23 @@ async function main() {
 
   const contractAddressInput = await inquirer.prompt({
     type: "input",
-    name: "contractAddress",
-    message: "NFT Contract Address:",
-    validate: (input) =>
-      ethers.utils.isAddress(input) || "Please enter a valid address",
+    name: "contractAddressOrLink",
+    message: "NFT Contract Address or Magic Eden Link:",
+    validate: (input) => {
+      const address = extractContractAddress(input);
+      return address ? true : "Please enter a valid address or Magic Eden link";
+    },
     prefix: "?",
   });
 
+  const contractAddress = extractContractAddress(
+    contractAddressInput.contractAddressOrLink
+  );
+  helpers.log.info(`Using contract address: ${contractAddress}`);
+
   try {
     const { name, symbol } = await nft.getCollectionInfo(
-      contractAddressInput.contractAddress,
+      contractAddress,
       provider
     );
     if (name !== "Unknown") {
@@ -92,7 +120,7 @@ async function main() {
   if (useContractPriceInput.useContractPrice) {
     try {
       const contractForConfig = blockchain.createContract(
-        contractAddressInput.contractAddress,
+        contractAddress,
         ABI,
         provider
       );
@@ -192,7 +220,7 @@ async function main() {
 
   try {
     const result = await nft.executeMint(
-      contractAddressInput.contractAddress,
+      contractAddress,
       blockchain.createWallet(wallet.privateKey, provider),
       gasLimit,
       fee,
